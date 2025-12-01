@@ -45,7 +45,7 @@ export default function Home() {
             setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
             
             setTimeout(() => {
-                router.push('/student-dashboard'); 
+                window.location.href = '/';
             }, 1000); 
 
         } catch (error) {
@@ -120,6 +120,9 @@ export default function Home() {
 
                             <div className="text-center mt-2">
                                 <a href="/register" className="text-blue-600 hover:underline">Register</a>
+                            </div>
+                            <div className="text-center mt-2">
+                                <a href="/reset-password" className="text-blue-600 hover:underline">Forget Password</a>
                             </div>
                         </form>
                     </div>

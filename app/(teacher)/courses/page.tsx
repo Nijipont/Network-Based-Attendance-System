@@ -16,18 +16,7 @@ export default function CoursesPage() {
                 + Create New Course
             </Link>
           </div>
-        <div className="bg-white p-4 rounded-lg shadow border-l-4 border-teal-500">
-          <h3 className="text-xl font-semibold">Next.js App Router Masterclass</h3>
-          <p className="text-gray-600">45 Students - 10 Modules</p>
-          <button className="mt-2 text-sm text-teal-600 hover:text-teal-800">Manage Course</button>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow border-l-4 border-teal-500">
-          <h3 className="text-xl font-semibold">Advanced TypeScript Patterns</h3>
-          <p className="text-gray-600">120 Students - 6 Modules</p>
-          <button className="mt-2 text-sm text-teal-600 hover:text-teal-800">Manage Course</button>
-        </div>
-        {/* ... รายการคอร์สอื่น ๆ */}
-      </div>
     </section>
   );
 }

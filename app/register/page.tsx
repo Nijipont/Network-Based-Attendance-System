@@ -12,6 +12,7 @@ export function passwordValidation(password: string) {
 }
 
 export default function Register() {
+  const TEACHER_DOMAIN = 'kku.ac.th';
   const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
@@ -85,6 +86,9 @@ export default function Register() {
 
     // --- Success Logic ---
     try {
+      const emailParts = formData.email.split('@');
+      const emailDomain = emailParts.length === 2 ? emailParts[1].toLowerCase() : '';
+      const userRole = emailDomain === TEACHER_DOMAIN.toLowerCase() ? 'teacher' : 'student';
       const supabase = createClient();
       const {data, error: authError} = await supabase.auth.signUp({
         email: formData.email,
@@ -105,6 +109,7 @@ export default function Register() {
             username: formData.username,
             firstname: formData.firstname,
             lastname: formData.lastname,
+            role: userRole,
           }
         ])
       if (profilesError) {
