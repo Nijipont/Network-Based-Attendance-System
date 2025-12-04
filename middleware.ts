@@ -5,8 +5,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 // 1. กำหนดเส้นทาง
 // ----------------------------------------------------
 const LOGIN_ROUTE = '/'; 
-const STUDENT_DASHBOARD = '/student/student-dashboard';
-const TEACHER_DASHBOARD = '/teacher/teacher-dashboard';
+const STUDENT_DASHBOARD = '/student-dashboard';
+const TEACHER_DASHBOARD = '/teacher-dashboard';
 const PUBLIC_ROUTES = [
   '/register',
   '/reset-password',

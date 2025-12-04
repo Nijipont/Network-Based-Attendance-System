@@ -1,7 +1,12 @@
 // app/(student)/layout.tsx
+"use client";
 
 import Link from 'next/link';
 import { PropsWithChildren } from 'react'; // เพื่อแก้ปัญหา Type Error ของ children
+import ClientLogoutButton from '@/app/clientLogoutButton';
+import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState } from "react";
+
 
 // Component จำลอง: Sidebar สำหรับนักเรียน
 const StudentSidebar = () => (
@@ -15,16 +20,32 @@ const StudentSidebar = () => (
   </aside>
 );
 
-// Component จำลอง: Header
-const StudentHeader = () => (
-  <header className="bg-white shadow-md p-4 flex justify-between items-center">
-    <h2 className="text-xl font-semibold text-gray-800">Hello, New Student!</h2>
-    <button className="text-sm text-red-500 hover:text-red-700">Logout</button>
-  </header>
-);
 
 // Component หลัก: StudentLayout
 export default function StudentLayout({ children }: PropsWithChildren) {
+  const supabase = createClient();
+  const [firstname, setFirstname] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("firstname")
+        .eq("user_id", user.id)
+        .single();
+
+      setFirstname(profile?.firstname || "Student");
+    };
+
+    loadProfile();
+  }, []);
+
   return (
     <div className="flex min-h-screen">
       {/* Sidebar เฉพาะนักเรียน */}
@@ -32,7 +53,10 @@ export default function StudentLayout({ children }: PropsWithChildren) {
       
       <div className="flex-1 flex flex-col">
         {/* Header เฉพาะนักเรียน */}
-        <StudentHeader />
+        <header className="bg-white shadow-md p-4 flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-gray-800">Hello, {firstname}</h2>
+        <ClientLogoutButton></ClientLogoutButton>
+        </header>
         
         {/* เนื้อหาของหน้าย่อย */}
         <main className="flex-1 p-8 bg-gray-50 overflow-y-auto">

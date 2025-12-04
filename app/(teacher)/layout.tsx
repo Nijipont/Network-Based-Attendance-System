@@ -1,8 +1,12 @@
 // app/(teacher)/layout.tsx
+"use client";
 
 import Link from 'next/link';
-// 1. นำเข้า PropsWithChildren
 import { PropsWithChildren } from 'react'; 
+import ClientLogoutButton from '@/app/clientLogoutButton';
+import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState } from "react";
+import { profile } from 'console';
 
 // Component จำลอง: Sidebar สำหรับครู
 const TeacherSidebar = () => (
@@ -19,16 +23,31 @@ const TeacherSidebar = () => (
   </aside>
 );
 
-// Component จำลอง: Header
-const TeacherHeader = () => (
-  <header className="bg-white shadow-md p-4 flex justify-between items-center">
-    <h2 className="text-xl font-semibold text-gray-800">Welcome back, Prof. Max!</h2>
-    <button className="text-sm text-red-500 hover:text-red-700">Logout</button>
-  </header>
-);
 
 // 2. แก้ไขโดยการเพิ่ม Type PropsWithChildren
 export default function TeacherLayout({ children }: PropsWithChildren) {
+  const supabase = createClient();
+  const [firstname, setFirstname] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("firstname")
+        .eq("user_id", user.id)
+        .single();
+
+      setFirstname(profile?.firstname || "Student");
+    };
+
+    loadProfile();
+  }, []);
   return (
     <div className="flex min-h-screen">
       {/* 1. Sidebar จะอยู่ด้านซ้ายเสมอ */}
@@ -36,7 +55,10 @@ export default function TeacherLayout({ children }: PropsWithChildren) {
       
       <div className="flex-1 flex flex-col">
         {/* 2. Header จะอยู่ด้านบนเสมอ */}
-        <TeacherHeader />
+        <header className="bg-white shadow-md p-4 flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-gray-800">Welcome back, Teacher {firstname}</h2>
+        <ClientLogoutButton></ClientLogoutButton>
+        </header>
         
         {/* 3. children คือเนื้อหาของหน้าปัจจุบัน (Dashboard หรือ Courses) */}
         <main className="flex-1 p-8 bg-gray-50 overflow-y-auto">
