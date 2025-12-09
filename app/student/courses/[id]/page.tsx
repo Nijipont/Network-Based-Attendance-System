@@ -1,70 +1,82 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
-export default function CourseDetailPage({ params }) {
-  const { id } = params; // course_id
+export default function CourseDetailPage() {
+  const { id } = useParams(); // course_id
   const supabase = createClient();
 
   const [course, setCourse] = useState(null);
   const [sessions, setSessions] = useState([]);
-  const [attendance, setAttendance] = useState([]);
 
+  // Load course
   useEffect(() => {
-    const loadData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      // course info
-      const { data: courseData } = await supabase
+    const loadCourse = async () => {
+      const { data, error } = await supabase
         .from("courses")
         .select("*")
         .eq("course_id", id)
         .single();
 
-      // sessions
-      const { data: sessionData } = await supabase
-        .from("sessions")
-        .select("*")
-        .eq("course_id", id);
-
-      // attendance
-      const { data: attendanceData } = await supabase
-        .from("attendance")
-        .select("session_id, status")
-        .eq("student_id", user.id);
-
-      setCourse(courseData);
-      setSessions(sessionData || []);
-      setAttendance(attendanceData || []);
+      if (!error) setCourse(data);
     };
 
-    loadData();
+    loadCourse();
   }, [id]);
 
-  const getStatus = (sessionId) =>
-    attendance.find((a) => a.session_id === sessionId)?.status || "Not marked";
+  // Load sessions for this course
+  useEffect(() => {
+    const loadSessions = async () => {
+      const { data, error } = await supabase
+        .from("sessions")
+        .select("*")
+        .eq("course_id", id)
+        .order("session_number", { ascending: false });
+
+      if (!error) setSessions(data);
+    };
+
+    loadSessions();
+  }, [id]);
+
+  if (!course) return <p>Loading...</p>;
 
   return (
-    <section>
-      <h1 className="text-3xl font-bold mb-4">{course?.course_name}</h1>
-      <p className="mb-6 text-gray-700">{course?.description}</p>
-
-      <h2 className="text-2xl font-semibold mt-6 mb-4">Sessions</h2>
-
-      <div className="space-y-4">
-        {sessions.map((s) => (
-          <div key={s.session_id} className="p-4 bg-white rounded shadow">
-            <h3 className="font-semibold">
-              Session {s.session_number}: {s.title}
-            </h3>
-            <p>Date: {s.session_date}</p>
-            <p>Status: {getStatus(s.session_id)}</p>
-          </div>
-        ))}
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">{course.course_name}</h1>
+        <p className="text-gray-600">{course.description}</p>
       </div>
-    </section>
+
+      {/* Session List */}
+      <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
+        <h2 className="text-xl font-semibold">Attendance Sessions</h2>
+
+        {sessions.length === 0 ? (
+          <p className="text-gray-500">No sessions created yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {sessions.map((s) => (
+              <Link
+                key={s.id}
+                href={`/student/courses/${id}/attendance/${s.id}`}
+                className="block p-3 border rounded-lg bg-white hover:bg-gray-100"
+              >
+                <div className="font-semibold">
+                  Session {s.session_number}: {s.title}
+                </div>
+                <div className="text-sm text-gray-600">
+                  Date: {s.session_date}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

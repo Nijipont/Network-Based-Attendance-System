@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function AddSessionPage({ params }) {
-  const { id } = params; // course_id
+  const { id } = use(params); // ← แก้ตรงนี้! ใช้ use() เพื่อ unwrap params
   const supabase = createClient();
   const router = useRouter();
 
@@ -16,7 +16,7 @@ export default function AddSessionPage({ params }) {
   const addSession = async () => {
     setLoading(true);
 
-    // หา session ล่าสุด → จะได้ session_number ใหม่
+    // หา session ล่าสุด → สร้าง session_number ถัดไป
     const { data: last } = await supabase
       .from("sessions")
       .select("session_number")
@@ -26,30 +26,37 @@ export default function AddSessionPage({ params }) {
 
     const newNumber = last?.[0]?.session_number + 1 || 1;
 
-    const { error } = await supabase.from("sessions").insert([
-      {
-        course_id: id,
-        session_number: newNumber,
-        title,
-        session_date: sessionDate,
-      },
-    ]);
+    // token สำหรับนักเรียน
+    const token = crypto.randomUUID();
+
+    const { data, error } = await supabase
+      .from("sessions")
+      .insert([
+        {
+          course_id: id,
+          session_number: newNumber,
+          title,
+          session_date: sessionDate,
+          session_token: token,
+        },
+      ])
+      .select()
+      .single();
 
     setLoading(false);
 
-    if (!error) {
-      alert("Session added!");
-      router.push(`/teacher/courses/${id}`);
-    } else {
+    if (error) {
       alert(error.message);
+      return;
     }
+
+    // Redirect ไปหน้า attendance ของ session
+    router.push(`/teacher/courses/${id}/attendance/${data.id}`);
   };
 
   return (
     <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">
-        Add Session for Course {id}
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Add Session for Course {id}</h1>
 
       <label className="block mb-2 font-medium">Session Title</label>
       <input

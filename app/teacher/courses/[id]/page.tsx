@@ -9,9 +9,11 @@ export default function CourseDetail() {
   const supabase = createClient();
 
   const [course, setCourse] = useState(null);
+  const [sessions, setSessions] = useState([]);
   const [studentEmail, setStudentEmail] = useState("");
   const [message, setMessage] = useState("");
 
+  // Load course
   useEffect(() => {
     const loadCourse = async () => {
       const { data, error } = await supabase
@@ -26,11 +28,28 @@ export default function CourseDetail() {
     loadCourse();
   }, [id]);
 
+  // Load sessions for this course
+  useEffect(() => {
+    const loadSessions = async () => {
+    const { data, error } = await supabase
+      .from("sessions")
+      .select("*")
+      .eq("course_id", id)
+      .order("session_number", { ascending: false });
+
+
+    if (!error) setSessions(data);
+    };
+
+    loadSessions();
+  }, [id]);
+
+  // Add student
   const handleAddStudent = async (e) => {
     e.preventDefault();
     setMessage("");
 
-    // 1. หา user จาก email
+    // 1. Find user by email
     const { data: userData, error: userErr } = await supabase
       .from("profiles")
       .select("user_id")
@@ -42,7 +61,7 @@ export default function CourseDetail() {
       return;
     }
 
-    // 2. Insert ลง enrollments
+    // 2. Insert enrollment
     const { error: insertErr } = await supabase.from("enrollments").insert({
       student_id: userData.user_id,
       course_id: id,
@@ -82,7 +101,33 @@ export default function CourseDetail() {
         </a>
       </div>
 
-      {/* Add student to course form */}
+      {/* Session List */}
+      <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
+        <h2 className="text-xl font-semibold">Attendance Sessions</h2>
+
+        {sessions.length === 0 ? (
+          <p className="text-gray-500">No sessions created yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {sessions.map((s) => (
+              <a
+                key={s.id}
+                href={`/teacher/courses/${id}/attendance/${s.id}`}
+                className="block p-3 border rounded-lg bg-white hover:bg-gray-100"
+              >
+                <div className="font-semibold">
+                  Session {s.session_number}: {s.title}
+                </div>
+                <div className="text-sm text-gray-600">
+                  Date: {s.session_date}
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add student to course */}
       <form
         onSubmit={handleAddStudent}
         className="p-4 border rounded-lg bg-gray-50 space-y-3"
