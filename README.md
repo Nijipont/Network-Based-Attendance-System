@@ -9,7 +9,7 @@
 ## 🎥 Demo Video
 
 👉 **คลิกลิงก์เพื่อดูวิดีโอสาธิตการทำงานของระบบ**
-🔗 **[Demo Video Link](https://youtu.be/kKnieIVLS-Q)**
+🔗 **[Demo Video Link](https://youtu.be/zLAjMArcsd0)**
 
 (วิดีโอแสดงขั้นตอนการใช้งานทั้งฝั่งอาจารย์และนักศึกษา)
 
